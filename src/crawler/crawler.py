@@ -39,6 +39,14 @@ class Crawler:
             return 0
         return 1
 
+    def strip_url(self, url):
+        url = url.strip()
+        if url.startswith('\'') and url.endswith('\''):
+            url = url.strip('\'')
+        elif url.startswith('"') and url.endswith('"'):
+            url = url.strip('"')
+        return url
+
     def save_css_with_urls(self, current_url):
         try:
             response = requests.get(current_url, headers=self.headers)
@@ -56,6 +64,7 @@ class Crawler:
             end_pos = str(soup).find(')', start_pos)
             url = str(soup)[start_pos:end_pos]
             start_pos = end_pos
+            url = self.strip_url(url)
             url = urljoin(current_url, url)
             self.links if url in self.links else self.links.append(url)
             if url not in self.explored_urls:
@@ -75,7 +84,7 @@ class Crawler:
             os.makedirs(local_dir_full_path)
         filename = os.path.join(local_dir_full_path, tail)
         if not os.path.exists(filename):
-            open(filename, 'w').write(str(soup))
+            open(filename, 'wb').write(response.content)
         for script in soup.find_all("script"):
             if script.attrs.get("src"):
                 script_url = urljoin(current_url, script.attrs.get("src"))
@@ -118,11 +127,12 @@ class Crawler:
         return robots_url
 
     def crawl(self, start_url):
-        s = [start_url]
+        s = []
         robots_url = self.create_path_to_robots_file(start_url)
         s.append(robots_url)
+        s.append(start_url)
         while len(s) > 0:
-            current_url = s.pop()
+            current_url = s.pop(0)
             if current_url not in self.explored_urls:
                 self.links if current_url in self.links else \
                     self.links.append(current_url)
@@ -145,7 +155,7 @@ class Crawler:
                     soup = BeautifulSoup(response.content, 'html.parser')
                     self.save_html(current_url, response, soup)
                     anchors = soup('a')
-                    for anchor in reversed(anchors):
+                    for anchor in anchors:
                         if 'href' in dict(anchor.attrs):
                             link = anchor['href']
                             local_url = urljoin(current_url, link)

@@ -19,6 +19,8 @@ def write_links_file(dir_full_path, start_url, filename, links):
     if head[0] == '/':
         head = head[1:]
     dir_full_path = os.path.join(dir_full_path, head)
+    if not os.path.exists(dir_full_path):
+        os.makedirs(dir_full_path)
     links_str = '\n'.join(links)
     links_str += '\n'
     id = uuid.uuid1()
