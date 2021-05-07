@@ -126,11 +126,17 @@ class Crawler:
         robots_url = urljoin(urn, 'robots.txt')
         return robots_url
 
-    def crawl(self, start_url):
+    def crawl(self, start_url, additional_urls=[]):
         s = []
         robots_url = self.create_path_to_robots_file(start_url)
         s.append(robots_url)
         s.append(start_url)
+        for additional_url in additional_urls:
+            if (
+                    additional_url.find(self.original_url) != -1 and
+                    additional_url not in s
+            ):
+                s.append(additional_url)
         while len(s) > 0:
             current_url = s.pop(0)
             if current_url not in self.explored_urls:
