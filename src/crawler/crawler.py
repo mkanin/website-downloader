@@ -7,10 +7,11 @@ from bs4 import BeautifulSoup
 
 class Crawler:
 
-    def __init__(self, headers, dir_full_path, original_url):
+    def __init__(self, headers, dir_full_path, start_url, additional_urls=[]):
         self.headers = headers
         self.dir_full_path = dir_full_path
-        self.original_url = original_url
+        self.start_url = start_url
+        self.additional_urls = additional_urls
         self.links = []
         self.links_short = []
         self.explored_urls = set()
@@ -126,14 +127,14 @@ class Crawler:
         robots_url = urljoin(urn, 'robots.txt')
         return robots_url
 
-    def crawl(self, start_url, additional_urls=[]):
+    def crawl(self):
         s = []
-        robots_url = self.create_path_to_robots_file(start_url)
+        robots_url = self.create_path_to_robots_file(self.start_url)
         s.append(robots_url)
-        s.append(start_url)
-        for additional_url in additional_urls:
+        s.append(self.start_url)
+        for additional_url in self.additional_urls:
             if (
-                    additional_url.find(self.original_url) != -1 and
+                    additional_url.find(self.start_url) != -1 and
                     additional_url not in s
             ):
                 s.append(additional_url)
@@ -154,7 +155,7 @@ class Crawler:
                     continue
                 if response.status_code not in [200, 201, 301, 302]:
                     continue
-                content_type = response.headers['Content-Type']
+                content_type = response.headers.get('Content-Type', '')
                 if content_type.find('text/html') == -1:
                     self.save_content(current_url, response)
                 else:
@@ -169,7 +170,7 @@ class Crawler:
                                 self.links.append(local_url)
                             local_url = local_url.split('#')[0]
                             if (
-                                    local_url.find(self.original_url) != -1 and
+                                    local_url.find(self.start_url) != -1 and
                                     local_url not in self.explored_urls
                             ):
                                 s.append(local_url)
