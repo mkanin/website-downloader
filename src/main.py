@@ -36,7 +36,7 @@ def main():
     crawler = Crawler(headers, dir_full_path, start_url, additional_urls)
     crawler.crawl()
     utils.write_links_file(
-        dir_full_path, start_url, "input.txt", start_urls
+        dir_full_path, start_url, "input_urls.txt", start_urls
     )
     utils.write_links_file(
         dir_full_path, start_url, "links_full.txt", crawler.links
